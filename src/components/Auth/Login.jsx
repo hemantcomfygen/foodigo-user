@@ -73,8 +73,13 @@ const Login = () => {
                     "userData",
                     JSON.stringify({ token: res?.data?.token })
                 );
+                localStorage.setItem(
+                    "user_id",
+                    res?.data?.user?.id
+                );
                 localStorage.removeItem("userToken");
                 navigate("/")
+                window.location.reload()
             }
 
             if (res?.code === 201) {

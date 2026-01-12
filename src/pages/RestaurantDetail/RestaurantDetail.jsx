@@ -5,6 +5,8 @@ import { useParams } from "react-router-dom";
 import { getAllOutlets, getFoodItems } from "../../redux/slices/AuthSlice";
 import Button from "../../components/Button/Button";
 import Modal from "../../components/modal/Modal";
+import ItemCard from "./ItemCard";
+import { notifyCartUpdate } from "../../hooks/cartEvents";
 
 const RestaurantDetail = () => {
     const { id } = useParams(); // restaurant_id
@@ -26,6 +28,8 @@ const RestaurantDetail = () => {
 
     const hasVariants = items?.variants?.length > 0;
     const hasAddOns = items?.add_ons?.length > 0;
+
+
 
 
     useEffect(() => {
@@ -64,16 +68,13 @@ const RestaurantDetail = () => {
         }
     }, [hasVariants, hasAddOns]);
 
-    const toggleAddon = (addon, option) => {
-        const exists = selectedAddOns.find(o => o._id === option._id);
-
-        if (exists) {
-            setSelectedAddOns(prev =>
-                prev.filter(o => o._id !== option._id)
-            );
-        } else {
-            setSelectedAddOns(prev => [...prev, option]);
-        }
+    const toggleAddon = (option) => {
+        setSelectedAddOns((prev) => {
+            if (prev.includes(option._id)) {
+                return prev.filter(id => id !== option._id);
+            }
+            return [...prev, option._id];
+        });
     };
 
     const handleOutletChange = (e) => {
@@ -126,6 +127,95 @@ const RestaurantDetail = () => {
         setIsCartModal(false)
         setItems(null)
     }
+
+    const handleAddToCart = (data) => {
+        const cartItem = {
+            restaurant_id: id,
+            outlet_id: selectedOutletId,
+            item_id: data?._id,
+            variant_id: selectedVariant?._id || null,
+            add_ons: selectedAddOns || null,
+            quantity: 1
+        };
+
+        const existingCart = JSON.parse(localStorage.getItem("cart_data")) || [];
+
+        const index = existingCart.findIndex(
+            item =>
+                item.item_id === cartItem.item_id &&
+                item.variant_id === cartItem.variant_id
+        );
+
+        if (index !== -1) {
+            existingCart[index].quantity += 1;
+        } else {
+            existingCart.push(cartItem);
+        }
+
+        localStorage.setItem("cart_data", JSON.stringify(existingCart));
+
+        notifyCartUpdate();
+        setIsCartModal(false)
+    };
+
+    const handleUpdateQuantity = (item, action) => {
+        const cart = JSON.parse(localStorage.getItem("cart_data")) || [];
+
+        const index = cart.findIndex(
+            i =>
+                i.item_id === item._id &&
+                i.variant_id === (selectedVariant?._id || null)
+        );
+
+        if (action === "add") {
+            if (index !== -1) {
+                cart[index].quantity += 1;
+            } else {
+                cart.push({
+                    restaurant_id: id,
+                    outlet_id: selectedOutletId,
+                    item_id: item._id,
+                    variant_id: selectedVariant?._id || null,
+                    add_ons: selectedAddOns || null,
+                    quantity: 1
+                });
+            }
+        }
+
+        if (action === "remove" && index !== -1) {
+            if (cart[index].quantity > 1) {
+                cart[index].quantity -= 1;
+            } else {
+                cart.splice(index, 1);
+            }
+        }
+
+        localStorage.setItem("cart_data", JSON.stringify(cart));
+        notifyCartUpdate();
+    };
+
+    const calculateTotalPrice = () => {
+        if (!items) return 0;
+
+        // 1️⃣ Base or Variant price
+        const basePrice = selectedVariant?.price ?? items.base_price ?? 0;
+
+        // 2️⃣ Add-ons total
+        let addOnsTotal = 0;
+
+        if (items.add_ons?.length && selectedAddOns.length) {
+            items.add_ons.forEach(addon => {
+                addon.options.forEach(option => {
+                    if (selectedAddOns.includes(option._id)) {
+                        addOnsTotal += option.price || 0;
+                    }
+                });
+            });
+        }
+
+        return basePrice + addOnsTotal;
+    };
+
     return (
         <>
             <div className="px-4 py-6">
@@ -194,46 +284,13 @@ const RestaurantDetail = () => {
                             </h2>
 
                             {category.items.map((item) => (
-                                <div
+                                <ItemCard
                                     key={item._id}
-                                    className="flex justify-between items-start border-b border-zinc-200 pb-4 mb-4"
-                                >
-                                    <div className="pr-4">
-                                        <p className="font-medium flex items-center gap-2">
-                                            {item.name}
-                                            <span
-                                                className={`text-xs px-1 border rounded ${item.food_type === "veg"
-                                                    ? "text-green-600 border-green-600"
-                                                    : "text-red-600 border-red-600"
-                                                    }`}
-                                            >
-                                                {item.food_type}
-                                            </span>
-                                        </p>
-                                        <p className="mt-1 font-semibold">
-                                            ₹{item.base_price}
-                                        </p>
-
-                                        <p className="text-sm text-gray-500">
-                                            {item.description}
-                                        </p>
-                                    </div>
-
-                                    <div className="text-center">
-                                        <img
-                                            src={item.image}
-                                            alt={item.name}
-                                            className="w-20 h-20 rounded object-contain mb-2"
-                                        />
-                                        <Button
-                                            variant="outline"
-                                            className={`${item.isInStock ? "text-green-600! border-green-600!" : "text-red-600! border-red-600! cursor-not-allowed! opacity-60!"}`}
-                                            onClick={() => handleCartModal(item)}
-                                        >
-                                            {item.isInStock ? "ADD" : "Out of stock"}
-                                        </Button>
-                                    </div>
-                                </div>
+                                    item={item}
+                                    selectedVariant={selectedVariant}
+                                    handleCartModal={handleCartModal}
+                                    handleUpdateQuantity={handleUpdateQuantity}
+                                />
                             ))}
                         </div>
                     ))}
@@ -251,7 +308,7 @@ const RestaurantDetail = () => {
                         {items?.name}
                     </h3>
                     <p className="text-xs text-gray-500">
-                        ₹{selectedVariant?.price || items?.base_price}
+                        ₹{calculateTotalPrice()}
                     </p>
                 </div>
 
@@ -263,7 +320,7 @@ const RestaurantDetail = () => {
 
                         <div className="bg-gray-50 rounded-lg p-3 space-y-3">
                             {items?.variants?.map((variant) => (
-                                <div key={variant._id}>
+                                <div key={variant._id} className="space-y-2">
                                     {variant.options.map((option) => (
                                         <label
                                             key={option._id}
@@ -307,7 +364,7 @@ const RestaurantDetail = () => {
 
                         <div className="space-y-4">
                             {items?.add_ons?.map((addon) => (
-                                <div key={addon._id}>
+                                <div key={addon._id} className="space-y-2">
                                     <p className="text-sm font-medium mb-2">
                                         {addon.title}
                                     </p>
@@ -320,10 +377,8 @@ const RestaurantDetail = () => {
                                             <div className="flex items-center gap-3">
                                                 <input
                                                     type="checkbox"
-                                                    checked={selectedAddOns.some(o => o._id === option._id)}
-                                                    onChange={() =>
-                                                        toggleAddon(addon, option)
-                                                    }
+                                                    checked={selectedAddOns.includes(option._id)}
+                                                    onChange={() => toggleAddon(option)}
                                                 />
                                                 <p className="text-sm">
                                                     {option.label}
@@ -356,15 +411,7 @@ const RestaurantDetail = () => {
                         </button>
                     ) : (
                         <button
-                            onClick={() => {
-                                console.log("Final Add:", {
-                                    item: items,
-                                    price: selectedVariant?.price || items.base_price,
-                                    variant: selectedVariant,
-                                    addons: selectedAddOns
-                                });
-                                handleCloseCartModal();
-                            }}
+                            onClick={() => handleAddToCart(items)}
                             className="bg-green-600 text-white px-6 py-2 rounded-md text-sm"
                         >
                             Add Item

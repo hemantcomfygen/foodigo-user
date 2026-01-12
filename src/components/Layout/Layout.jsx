@@ -5,6 +5,7 @@ import SignUp from "../Auth/SignUp";
 import Login from "../Auth/Login";
 import Home from "../../pages/home/Home";
 import RestaurantDetail from "../../pages/RestaurantDetail/RestaurantDetail";
+import Cart from "../../pages/cart/Cart";
 
 const Layout = () => {
 
@@ -18,10 +19,11 @@ const Layout = () => {
                        [&::-webkit-scrollbar]:w-0 w-full max-w-6xl mx-auto"
             >
                 <Routes>
+                    <Route path="/" element={<Home />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/signup" element={<SignUp />} />
-                    <Route path="/" element={<Home />} />
                     <Route path="/outlet/:name/:id" element={<RestaurantDetail />} />
+                    <Route path="/cart" element={<Cart />} />
                 </Routes>
 
             </main>

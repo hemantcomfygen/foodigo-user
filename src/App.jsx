@@ -1,9 +1,9 @@
-import React from 'react'
 import Layout from './components/Layout/Layout'
 import { Route, Routes } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 
 const App = () => {
+  
   return (
     <div className="">
       <div className="">

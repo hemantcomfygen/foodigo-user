@@ -47,6 +47,10 @@ const SignUp = () => {
                     "userData",
                     JSON.stringify({ token: res?.data?.token })
                 );
+                localStorage.setItem(
+                    "user_id",
+                    JSON.stringify(res?.data?.user?.id)
+                );
                 localStorage.removeItem("userToken");
                 // window.location.reload();
                 navigate("/")
