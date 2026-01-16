@@ -261,7 +261,9 @@ const RestaurantDetail = () => {
         const prevCart =
             JSON.parse(localStorage.getItem("cart_data")) || [];
 
-        const cart = JSON.parse(JSON.stringify(prevCart));
+        const cart = [...prevCart];
+        
+    
 
         const isSameAddOns = (a = [], b = []) =>
             JSON.stringify([...a].sort()) === JSON.stringify([...b].sort());
@@ -269,17 +271,19 @@ const RestaurantDetail = () => {
         const index = cart.findIndex(
             i =>
                 i.item_id === item._id &&
-                i.variant_id === (selectedVariant?._id || null) &&
+                // i.variant_id === (selectedVariant?._id || null) &&
                 isSameAddOns(i.add_ons, selectedAddOns)
         );
 
-        console.log("index.quantity", index)
 
         let updatedItem = null;
+        // console.log("prevCart", "cart", prevCart, index, item)
+        // return;
 
         // ---------- UPDATE CART ----------
         if (action === "add") {
             if (index !== -1) {
+                console.log("cartDat", cart);
                 cart[index].quantity += 1;
                 updatedItem = cart[index];
             } else {
