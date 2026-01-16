@@ -6,7 +6,9 @@ import { getAllOutlets, getFoodItems } from "../../redux/slices/AuthSlice";
 import Button from "../../components/Button/Button";
 import Modal from "../../components/modal/Modal";
 import ItemCard from "./ItemCard";
+import { addItem, addToCart, decreaseQty, increaseQty, rollbackCart } from "../../redux/slices/CartSlice";
 import { notifyCartUpdate } from "../../hooks/cartEvents";
+import toast from "react-hot-toast";
 
 const RestaurantDetail = () => {
     const { id } = useParams(); // restaurant_id
@@ -35,7 +37,7 @@ const RestaurantDetail = () => {
     useEffect(() => {
         dispatch(
             getAllOutlets({
-                query: { restaurant_id: id },
+                query: JSON.stringify({ restaurant_id: id }),
                 populate:
                     "restaurant_id:restaurant_name,total_ratings,average_rating,cuisines"
             })
@@ -128,22 +130,37 @@ const RestaurantDetail = () => {
         setItems(null)
     }
 
-    const handleAddToCart = (data) => {
+    const handleAddToCart = async (data) => {
         const cartItem = {
             restaurant_id: id,
             outlet_id: selectedOutletId,
             item_id: data?._id,
             variant_id: selectedVariant?._id || null,
-            add_ons: selectedAddOns || null,
-            quantity: 1
+            add_ons: selectedAddOns ?? [],
+            quantity: 1,
         };
 
-        const existingCart = JSON.parse(localStorage.getItem("cart_data")) || [];
+        const prevCart =
+            JSON.parse(localStorage.getItem("cart_data")) || [];
 
-        const index = existingCart.findIndex(
-            item =>
-                item.item_id === cartItem.item_id &&
-                item.variant_id === cartItem.variant_id
+        // clone for rollback
+        const existingCart = JSON.parse(JSON.stringify(prevCart));
+
+        // single restaurant rule
+        if (
+            existingCart.length &&
+            existingCart[0].restaurant_id !== id
+        ) {
+            existingCart.length = 0;
+        }
+
+        const isSameAddOns = (a = [], b = []) =>
+            JSON.stringify([...a].sort()) === JSON.stringify([...b].sort());
+
+        const index = existingCart.findIndex(item =>
+            item.item_id === cartItem.item_id &&
+            item.variant_id === cartItem.variant_id &&
+            isSameAddOns(item.add_ons, cartItem.add_ons)
         );
 
         if (index !== -1) {
@@ -152,47 +169,181 @@ const RestaurantDetail = () => {
             existingCart.push(cartItem);
         }
 
+        // optimistic update
         localStorage.setItem("cart_data", JSON.stringify(existingCart));
-
         notifyCartUpdate();
-        setIsCartModal(false)
+        setIsCartModal(false);
+
+        const userData = localStorage.getItem("userData");
+        if (!userData) return;
+
+        try {
+            const payload = {
+                outlet_id: selectedOutletId,
+                items: existingCart.map(item => ({
+                    food_item_id: item.item_id,
+                    quantity: Number(item.quantity), // 🔐 ensure number
+                    variant_id: item.variant_id,
+                    add_on_id: item.add_ons,
+                })),
+            };
+
+            const res = await dispatch(addToCart(payload)).unwrap();
+
+            // backend explicitly says error
+            if (res?.error) {
+                toast.error("Failed to add to cart");
+            }
+
+        } catch (error) {
+            toast.error("Failed to add to cart");
+            console.error("Cart sync failed", error);
+
+            // 🔄 ROLLBACK localStorage
+            localStorage.setItem("cart_data", JSON.stringify(prevCart));
+            notifyCartUpdate();
+        }
     };
 
-    const handleUpdateQuantity = (item, action) => {
-        const cart = JSON.parse(localStorage.getItem("cart_data")) || [];
+
+
+
+    // const handleAddToCart = async (item) => {
+    //     const payload = {
+    //         restaurantId: id,
+    //         outletId: selectedOutletId,
+    //         item: {
+    //             itemId: item._id,
+    //             variantId: selectedVariant?._id || null,
+    //             addOns: selectedAddOns || []
+    //         }
+    //     };
+
+    //     // 1️⃣ Optimistic update
+    //     dispatch(addItem(payload));
+    //     setIsCartModal(false);
+
+    //     // try {
+    //     //     // 2️⃣ Backend sync
+    //     //     await dispatch(
+    //     //         addToCart({
+    //     //             restaurant_id: id,
+    //     //             outlet_id: selectedOutletId,
+    //     //             item_id: item._id,
+    //     //             variant_id: selectedVariant?._id || null,
+    //     //             add_ons: selectedAddOns || [],
+    //     //             quantity: 1
+    //     //         })
+    //     //     ).unwrap();
+
+    //     //     setIsCartModal(false);
+
+    //     // } catch (err) {
+    //     //     // 3️⃣ Rollback on failure
+    //     //     dispatch(rollbackCart());
+    //     //     console.error("Cart sync failed", err);
+    //     // }
+    // };
+
+
+
+    // const handleUpdateQuantity = (item, action) => {
+    //     if (action === "add") {
+    //         dispatch(increaseQty(item._id));
+    //     }
+
+    //     if (action === "remove") {
+    //         dispatch(decreaseQty(item._id));
+    //     }
+    // };
+
+    const handleUpdateQuantity = async (item, action) => {
+        const prevCart =
+            JSON.parse(localStorage.getItem("cart_data")) || [];
+
+        const cart = JSON.parse(JSON.stringify(prevCart));
+
+        const isSameAddOns = (a = [], b = []) =>
+            JSON.stringify([...a].sort()) === JSON.stringify([...b].sort());
 
         const index = cart.findIndex(
             i =>
                 i.item_id === item._id &&
-                i.variant_id === (selectedVariant?._id || null)
+                i.variant_id === (selectedVariant?._id || null) &&
+                isSameAddOns(i.add_ons, selectedAddOns)
         );
 
+        console.log("index.quantity", index)
+
+        let updatedItem = null;
+
+        // ---------- UPDATE CART ----------
         if (action === "add") {
             if (index !== -1) {
                 cart[index].quantity += 1;
+                updatedItem = cart[index];
             } else {
-                cart.push({
+                const newItem = {
                     restaurant_id: id,
                     outlet_id: selectedOutletId,
                     item_id: item._id,
                     variant_id: selectedVariant?._id || null,
-                    add_ons: selectedAddOns || null,
-                    quantity: 1
-                });
+                    add_ons: selectedAddOns ?? [],
+                    quantity: 1,
+                };
+                cart.push(newItem);
+                updatedItem = newItem;
             }
         }
 
         if (action === "remove" && index !== -1) {
             if (cart[index].quantity > 1) {
                 cart[index].quantity -= 1;
+                updatedItem = cart[index];
             } else {
+                updatedItem = {
+                    ...cart[index],
+                    quantity: 0 // backend interprets as remove
+                };
                 cart.splice(index, 1);
             }
         }
 
+        // optimistic update
         localStorage.setItem("cart_data", JSON.stringify(cart));
         notifyCartUpdate();
+
+        const userData = localStorage.getItem("userData");
+        if (!userData || !updatedItem) return;
+
+        try {
+            // SEND ONLY UPDATED ITEM
+            const payload = {
+                outlet_id: selectedOutletId,
+                items: [{
+                    food_item_id: updatedItem.item_id,
+                    quantity: Number(updatedItem.quantity),
+                    variant_id: updatedItem.variant_id,
+                    add_on_id: updatedItem.add_ons,
+                }],
+            };
+
+            const res = await dispatch(addToCart(payload)).unwrap();
+
+            if (res?.error) {
+                throw new Error("Cart item sync failed");
+            }
+
+        } catch (error) {
+            console.error("Item update failed", error);
+
+            // ---------- ROLLBACK ----------
+            localStorage.setItem("cart_data", JSON.stringify(prevCart));
+            notifyCartUpdate();
+        }
     };
+
+
 
     const calculateTotalPrice = () => {
         if (!items) return 0;
@@ -215,7 +366,6 @@ const RestaurantDetail = () => {
 
         return basePrice + addOnsTotal;
     };
-
     return (
         <>
             <div className="px-4 py-6">

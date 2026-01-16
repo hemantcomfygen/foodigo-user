@@ -6,6 +6,14 @@ const ItemCard = ({ item, selectedVariant, handleCartModal, handleUpdateQuantity
         selectedVariant?._id
     );
 
+    //  const quantity = useSelector(state =>
+    //     state.cart.items.find(
+    //         i =>
+    //             i.itemId === item._id &&
+    //             i.variantId === selectedVariant?._id
+    //     )?.quantity || 0
+    // );
+
     return (
         <div className="flex justify-between items-start border-b border-zinc-200 pb-4 mb-4">
             <div className="pr-4">
@@ -13,8 +21,8 @@ const ItemCard = ({ item, selectedVariant, handleCartModal, handleUpdateQuantity
                     {item.name}
                     <span
                         className={`text-xs px-1 border rounded ${item.food_type === "veg"
-                                ? "text-green-600 border-green-600"
-                                : "text-red-600 border-red-600"
+                            ? "text-green-600 border-green-600"
+                            : "text-red-600 border-red-600"
                             }`}
                     >
                         {item.food_type}
@@ -60,8 +68,8 @@ const ItemCard = ({ item, selectedVariant, handleCartModal, handleUpdateQuantity
                 ) : (
                     <button
                         className={`border px-3 py-1 rounded ${item.isInStock
-                                ? "text-green-600 border-green-600 cursor-pointer"
-                                : "text-red-600 border-red-600 cursor-not-allowed opacity-60"
+                            ? "text-green-600 border-green-600 cursor-pointer"
+                            : "text-red-600 border-red-600 cursor-not-allowed opacity-60"
                             }`}
                         onClick={() => handleCartModal(item)}
                         disabled={!item.isInStock}
