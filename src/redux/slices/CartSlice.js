@@ -1,5 +1,9 @@
-import { createSlice} from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
 import { createApiThunkPrivate, createExtraReducersForThunk } from "../../utils/apiThunk";
+import { REHYDRATE } from "redux-persist";
+
+const persistedCart = JSON.parse(localStorage.getItem("cart_data")) || [];
+
 
 const initialState = {
     addToCartData: {},
@@ -79,6 +83,11 @@ const cartSlice = createSlice({
 
     extraReducers: (builder) => {
         createExtraReducersForThunk(builder, addToCart, 'addToCartData')
+        
+        builder.addCase(REHYDRATE, (state) => {
+            state.lastStableState = null;
+            state.syncStatus = "idle";
+        });
     }
 });
 

@@ -131,7 +131,7 @@ export function formatToSixDecimals(value) {
   const num = Number(value);
 
   if (!num) return "0";
-  
+
   return num.toFixed(8);
 }
 
@@ -139,8 +139,29 @@ export function calculateCoinValue(coinAmount, coinPrice) {
   const amount = Number(coinAmount);
   const price = Number(coinPrice);
 
-  if (!amount || !price) return "0"; 
+  if (!amount || !price) return "0";
 
   const total = amount * price;
   return total.toFixed(2);
+}
+
+export function formatCount(value) {
+  if (typeof value !== "number" || value < 0) return "0";
+
+  if (value < 1000) {
+    return String(value);
+  }
+
+  if (value < 100000) {
+    // 1k – 99.9k
+    return `${(value / 1000).toFixed(1).replace(/\.0$/, "")}K +`;
+  }
+
+  if (value < 1000000) {
+    // 100k – 999k
+    return `${Math.floor(value / 1000)}K`;
+  }
+
+  // 10L+
+  return `${(value / 100000).toFixed(1).replace(/\.0$/, "")}L +`;
 }

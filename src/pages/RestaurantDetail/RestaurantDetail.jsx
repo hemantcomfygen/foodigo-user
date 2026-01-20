@@ -6,12 +6,13 @@ import { getAllOutlets, getFoodItems } from "../../redux/slices/AuthSlice";
 import Button from "../../components/Button/Button";
 import Modal from "../../components/modal/Modal";
 import ItemCard from "./ItemCard";
-import { addItem, addToCart, decreaseQty, increaseQty, rollbackCart } from "../../redux/slices/CartSlice";
+import { addToCart } from "../../redux/slices/CartSlice";
 import { notifyCartUpdate } from "../../hooks/cartEvents";
 import toast from "react-hot-toast";
+import Loader from "../../components/Loader/Loader";
 
 const RestaurantDetail = () => {
-    const { id } = useParams(); // restaurant_id
+    const { id } = useParams();
     const dispatch = useDispatch();
     const [selectedOutletId, setSelectedOutletId] = useState(null);
     const [items, setItems] = useState(null)
@@ -99,9 +100,7 @@ const RestaurantDetail = () => {
 
     if (!outlet || !restaurant) {
         return (
-            <p className="text-center text-gray-500 py-10">
-                Loading restaurant details...
-            </p>
+            <Loader loading={true} />
         );
     }
 
@@ -262,8 +261,8 @@ const RestaurantDetail = () => {
             JSON.parse(localStorage.getItem("cart_data")) || [];
 
         const cart = [...prevCart];
-        
-    
+
+
 
         const isSameAddOns = (a = [], b = []) =>
             JSON.stringify([...a].sort()) === JSON.stringify([...b].sort());
@@ -372,6 +371,7 @@ const RestaurantDetail = () => {
     };
     return (
         <>
+            <Loader loading={selector?.loading} />
             <div className="px-4 py-6">
 
                 <div className="pb-4 mb-6 ">

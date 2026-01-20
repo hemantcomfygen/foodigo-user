@@ -8,7 +8,9 @@ const initialState = {
     getHomePageDataData: {},
     getAllOutletsData: {},
     getFoodItemsData: {},
-    getUserInfoData: {}
+    getUserInfoData: {},
+    getHomeCuisineData: {},
+    getHomeBannersData: {}
 }
 
 //  https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd   real time coin market value
@@ -18,6 +20,8 @@ export const verifyOtp = createApiThunkPublic('verifyOtp', '/auth/user-verify-ot
 export const userRegistration = createApiThunkPublic('userRegistration', '/auth/user-registration', 'POST')
 
 export const getHomePageData = createApiThunkPrivate('getHomePageData', '/application-api/get-home-page-data', 'GET')
+export const getHomeCuisine = createApiThunkPrivate('getHomeCuisine', '/cuisine/all-documents', 'GET')
+export const getHomeBanners = createApiThunkPrivate('getHomeBanners', '/promotions-banner/getALLDocuments', 'GET')
 
 
 export const getAllOutlets = createApiThunkPrivate('getAllOutlets', '/application-api/get-all-outlets', 'GET')
@@ -42,6 +46,8 @@ export const authSlice = createSlice({
         createExtraReducersForThunk(builder, userRegistration, 'userRegistrationData')
         
         createExtraReducersForThunk(builder, getHomePageData, 'getHomePageDataData')
+        createExtraReducersForThunk(builder, getHomeCuisine, 'getHomeCuisineData')
+        createExtraReducersForThunk(builder, getHomeBanners, 'getHomeBannersData')
         createExtraReducersForThunk(builder, getAllOutlets, 'getAllOutletsData')
         createExtraReducersForThunk(builder, getFoodItems, 'getFoodItemsData')
         

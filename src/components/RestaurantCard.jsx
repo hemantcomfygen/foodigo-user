@@ -1,20 +1,22 @@
+import { MdStars } from "react-icons/md";
+import { formatCount } from "../utils/GlobleFunction";
+
 const RestaurantCard = ({ item, handleClick }) => {
     const {
         restaurant_details,
         cover_image,
         distanceInKm,
-        estimatedDeliveryTime,
         status,
     } = item;
 
     return (
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition">
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition cursor-pointer">
             {/* Cover Image */}
             <div className="relative" onClick={() => handleClick(restaurant_details.restaurant_name, restaurant_details._id)}>
                 <img
-                    src={cover_image || "https://thumbs.dreamstime.com/b/tasty-burger-french-fries-fire-close-up-home-made-flames-137249900.jpg"}
+                    src={cover_image ||item?.food_item?.image || "https://thumbs.dreamstime.com/b/tasty-burger-french-fries-fire-close-up-home-made-flames-137249900.jpg"}
                     alt={restaurant_details.restaurant_name}
-                    className="h-40 w-full object-cover"
+                    className="h-40 w-full object-fill"
                 />
 
                 {status !== "open" && (
@@ -30,21 +32,16 @@ const RestaurantCard = ({ item, handleClick }) => {
                     {restaurant_details.restaurant_name || "N/A"}
                 </h3>
 
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <span className="flex items-center gap-1">
-                        ⭐ {restaurant_details.average_rating}
+                <div className="flex items-center gap-2 text-sm text-gray-800 font-medium">
+                    <span className="flex items-center gap-1 text-sm">
+                        <MdStars className="text-green-800 h-5 w-5" /> {restaurant_details.average_rating} ({formatCount(restaurant_details.total_ratings)})
                     </span>
                     <span>•</span>
-                    <span>{restaurant_details.total_ratings}+ ratings</span>
+                    <span>{restaurant_details.preparation_time_min} min</span>
                 </div>
 
-                <p className="text-xs text-gray-500 truncate">
-                    {restaurant_details.food_type}
-                </p>
-
-                <div className="flex justify-between items-center text-sm text-gray-600 pt-1">
-                    <span>{estimatedDeliveryTime} mins</span>
-                    <span>{distanceInKm} km</span>
+                <div className="flex justify-between items-center text-sm text-gray-800 pt-1">
+                    <span className="">Distance : {distanceInKm} km</span>
                 </div>
             </div>
         </div>

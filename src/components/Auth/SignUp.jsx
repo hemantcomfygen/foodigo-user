@@ -37,7 +37,6 @@ const SignUp = () => {
             const payload = {
                 token: token,
                 email: form?.email,
-                mobile_no: form?.mobile,
                 full_name: form?.name
             }
             const res = await dispatch(userRegistration(payload)).unwrap();
@@ -49,11 +48,11 @@ const SignUp = () => {
                 );
                 localStorage.setItem(
                     "user_id",
-                    JSON.stringify(res?.data?.user?.id)
+                    res?.data?.user?.id
                 );
                 localStorage.removeItem("userToken");
-                // window.location.reload();
                 navigate("/")
+                window.location.reload();
             }
 
         } catch (error) {

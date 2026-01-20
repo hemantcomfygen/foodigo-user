@@ -1,0 +1,68 @@
+.banner-slider {
+  position: relative;
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* Banner image */
+.banner-slide img {
+  width: 100%;
+  height: 280px;
+  object-fit: "center";
+  border-radius: 10px;
+}
+
+
+/* DOTS CONTAINER */
+/* DOTS CONTAINER */
+.banner-dots {
+  position: absolute;
+  bottom: 12px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+/* OVERRIDE slick default */
+.banner-dots .slick-dots {
+  position: static;
+  display: flex !important;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+}
+
+/* DOT */
+.banner-dots .slick-dots li {
+  width: 8px;
+  height: 8px;
+  margin: 0;
+}
+
+/* HIDE DEFAULT DOT CONTENT */
+.banner-dots .slick-dots li button:before {
+  display: none;
+}
+
+/* CUSTOM DOT */
+.banner-dots .slick-dots li button {
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* ACTIVE DOT */
+.banner-dots .slick-dots li.slick-active button {
+  background: #fff;
+}
+
+
+/* MOBILE */
+@media (max-width: 768px) {
+  .banner-slide img {
+    height: 180px;
+  }
+}

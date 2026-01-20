@@ -1,11 +1,14 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getHomePageData } from "../../redux/slices/AuthSlice";
+import { getHomeBanners, getHomeCuisine, getHomePageData } from "../../redux/slices/AuthSlice";
 import toast from "react-hot-toast";
 import Modal from "../../components/modal/Modal";
 import RestaurantCard from "../../components/RestaurantCard";
 import { useNavigate } from "react-router-dom";
+import CategorySlider from "../../components/Slider/CategorySlider";
+import BannerSlider from "../../components/Slider/BannerSlider";
+import Loader from "../../components/Loader/Loader";
 
 const DEFAULT_LOCATION = {
     lat: "26.897493702773165",
@@ -29,6 +32,8 @@ const Home = () => {
     );
 
     const getHomePageDataData = selector?.getHomePageDataData?.data?.data?.outlets
+    const getHomeCuisineData = selector?.getHomeCuisineData?.data?.data?.list
+    const getHomeBannersData = selector?.getHomeBannersData?.data?.data?.list
 
     const getSessionLocation = () => {
         const data = sessionStorage.getItem(LOCATION_KEY);
@@ -63,6 +68,8 @@ const Home = () => {
                     long: location.longitude,
                 })
             );
+            dispatch(getHomeCuisine({ select: "_id,name,image_url" }));
+            dispatch(getHomeBanners({ select: "_id,title,image_url" }));
             setIsLocationModalOpen(false);
         }
     }, [location, dispatch]);
@@ -136,6 +143,7 @@ const Home = () => {
 
     return (
         <>
+            <Loader loading={selector?.loading} />
             <div className="px-4 py-6">
                 {selector?.loading && getHomePageDataData?.length === 0 && (
                     <p className="text-center text-sm text-gray-500">
@@ -149,7 +157,13 @@ const Home = () => {
                     </p>
                 )}
 
-                <div>
+                <div className="space-y-5">
+                    <BannerSlider banners={getHomeBannersData} />
+
+                    <CategorySlider
+                        heading="What's on your mind?"
+                        items={getHomeCuisineData}
+                    />
                     <h1 className="text-lg font-semibold mb-4">Near by Restaurants</h1>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                         {getHomePageDataData?.map((item, index) => (

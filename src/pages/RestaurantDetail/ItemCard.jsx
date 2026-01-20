@@ -21,8 +21,8 @@ const ItemCard = ({ item, selectedVariant, handleCartModal, handleUpdateQuantity
                     {item.name}
                     <span
                         className={`text-xs px-1 border rounded ${item.food_type === "veg"
-                            ? "text-green-600 border-green-600"
-                            : "text-red-600 border-red-600"
+                            ? "text-green-600 border-green-600 bg-green-100"
+                            : "text-red-600 border-red-600 bg-red-100"
                             }`}
                     >
                         {item.food_type}
