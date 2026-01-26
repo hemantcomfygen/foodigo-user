@@ -3,7 +3,7 @@ import { sessionStorageGetItem, sessionStorageRemoveItem } from './GlobleFunctio
 
 const isLive = false;
 
-export const apiUrl = isLive ? 'https://dev-dwm.jamsara.com/api' : 'http://192.168.1.16:5001/api/v1';
+export const apiUrl = isLive ? 'https://dev-dwm.jamsara.com/api' : 'http://localhost:5001/api/v1';
 export const socketApiUrl = isLive ? 'https://dev-dwm.jamsara.com/api' : 'http://localhost:5800//socket';
 
 // export const apiUrl = isLive ? 'https://dev-dwm.jamsara.com/api' : 'http://192.168.29.100:5800/api/';

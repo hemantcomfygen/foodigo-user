@@ -6,6 +6,7 @@ import Login from "../Auth/Login";
 import Home from "../../pages/home/Home";
 import RestaurantDetail from "../../pages/RestaurantDetail/RestaurantDetail";
 import Cart from "../../pages/cart/Cart";
+import CuisineRestaurants from "../../pages/CuisineRestaurants/CuisineRestaurants";
 
 const Layout = () => {
 
@@ -24,6 +25,7 @@ const Layout = () => {
                     <Route path="/signup" element={<SignUp />} />
                     <Route path="/outlet/:name/:id" element={<RestaurantDetail />} />
                     <Route path="/cart" element={<Cart />} />
+                    <Route path="/cuisine/:id/:name" element={<CuisineRestaurants />} />
                 </Routes>
 
             </main>

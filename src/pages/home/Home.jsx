@@ -141,8 +141,6 @@ const Home = () => {
         navigate(`/outlet/${res_name}/${id}`)
     }
 
-    console.log(22222, selector?.getHomePageDataData?.data?.data?.outlets);
-
     return (
         <>
             <Loader loading={selector?.loading} />
