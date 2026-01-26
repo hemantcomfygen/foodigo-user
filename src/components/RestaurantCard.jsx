@@ -8,7 +8,7 @@ const RestaurantCard = ({ item, handleClick }) => {
         distanceInKm,
         status,
     } = item;
-
+    
     return (
         <div className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition cursor-pointer">
             {/* Cover Image */}
